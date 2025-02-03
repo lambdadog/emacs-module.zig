@@ -6,6 +6,7 @@ const EmacsModule = @This();
 
 module: *Module,
 compile_step: *Build.Step.Compile,
+artifact_name: []const u8,
 
 pub const Options = struct {
     name: []const u8,
@@ -85,5 +86,36 @@ pub fn create(
     emod.compile_step.root_module.addImport("emacs-module", lib_module);
     emod.compile_step.root_module.addImport("emod-root", emod.module);
 
+    emod.artifact_name = std.fmt.allocPrint(
+        owner.allocator,
+        "{s}.{s}",
+        .{
+            options.name,
+            switch (options.target.result.ofmt) {
+                .coff => "dll",
+                .elf => "so",
+                .macho => "dylib",
+                else => @panic("Unsupported object format"),
+            },
+        },
+    ) catch @panic("OOM");
+
     return emod;
+}
+
+// TODO: copy .el files into zig-out/emacs?
+// FIXME: hack, overly dependent on build system internals
+pub fn install(self: *EmacsModule) void {
+    const b = self.module.owner;
+
+    const install_path = std.fmt.allocPrint(
+        b.allocator,
+        "emacs/{s}",
+        .{self.artifact_name},
+    ) catch @panic("OOM");
+
+    b.getInstallStep().dependOn(&b.addInstallFile(
+        self.compile_step.getEmittedBin(),
+        install_path,
+    ).step);
 }

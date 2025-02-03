@@ -16,10 +16,5 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    // TODO: vendor this into EmacsModule.install()
-    // TODO: copy .el files into zig-out/emacs?
-    b.getInstallStep().dependOn(&b.addInstallFile(
-        emod.compile_step.getEmittedBin(),
-        "emacs/example-zig-dynmod.so",
-    ).step);
+    emod.install();
 }
