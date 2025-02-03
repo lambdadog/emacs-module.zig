@@ -18,6 +18,9 @@ var gpl_token: c_int = undefined;
 comptime {
     if (options.gpl_compatible)
         @export(gpl_token, .{ .name = "plugin_is_GPL_compatible" })
-    else // FIXME: extremely terrible error
-        @compileError("root.module_options.gpl_compatible must be true");
+    else
+        @compileError(
+            // https://github.com/ziglang/zig/issues/22730
+            "Missing GPL affirmation. https://github.com/lambdadog/emacs-module.zig/blob/main/FAQ.md#missing-gpl-affirmation",
+        );
 }
